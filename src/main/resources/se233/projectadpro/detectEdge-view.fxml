@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.control.Button?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="se233.projectadpro.controller.DetectEdgeController">
+    <Button fx:id="backButton" layoutX="20" layoutY="20" text="Back" onAction="#handleBackButton"/>
+</AnchorPane>
