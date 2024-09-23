@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.stage.Modality;
@@ -12,6 +13,8 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,12 +57,6 @@ public class MainController {
                         }
                     });
 
-                    setOnMouseClicked(event -> {
-                        if (event.getClickCount() == 2 && !checkBox.isSelected() ) {
-                            openFile(file);
-                        }
-                    });
-
                     MenuItem openItem = new MenuItem("Open");
                     openItem.setOnAction(event -> openFile(file));
                     contextMenu.getItems().clear();
@@ -88,11 +85,11 @@ public class MainController {
                 files.stream()
                         .filter(file -> file.getName().toLowerCase().endsWith(".png") ||
                                         file.getName().toLowerCase().endsWith(".jpg") ||
-                                        file.getName().toLowerCase().endsWith(".pdf") ||
+//                                        file.getName().toLowerCase().endsWith(".pdf") ||
                                         file.getName().toLowerCase().endsWith(".zip"))
                         .forEach(file -> {
                             listViews.getItems().add(file);
-                            checkBoxMap.put(file, new CheckBox(file.getName()));
+                            checkBoxMap.put(file, new CheckBox(file.getPath()));
                         });
             }
             event.setDropCompleted(success);
@@ -101,9 +98,7 @@ public class MainController {
 
         cropBTN.setOnAction(event -> {
             try{
-                if(isAnyCheckboxSelected()){
-                    handleCrop();
-                }
+                handleCrop();
             } catch (Exception e){
                 e.printStackTrace();
             }
@@ -126,31 +121,60 @@ public class MainController {
         return false;
     }
 
+    private ArrayList<File> getSelectedFiles() {
+        ArrayList<File> selectedFiles = new ArrayList<>();
+
+        // Iterate through the checkBoxMap
+        for (Map.Entry<File, CheckBox> entry : checkBoxMap.entrySet()) {
+            File file = entry.getKey();
+            CheckBox checkBox = entry.getValue();
+
+            // If the checkbox is selected, add the file to the list
+            if (checkBox.isSelected()) {
+                selectedFiles.add(file);
+            }
+        }
+
+        return selectedFiles;
+    }
+
     @FXML
     private void handleCrop() {
+        if (!isAnyCheckboxSelected()) { showError("Please select a file"); return; }
+
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/se233/projectadpro/crop-view.fxml"));
-            Parent root = fxmlLoader.load();
+            cropBTN.setDisable(true);
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/se233/projectadpro/crop-view.fxml"));
+            Parent root = loader.load();
 
-            Stage cropStage = new Stage();
-            cropStage.initModality(Modality.APPLICATION_MODAL);
-            cropStage.initStyle(StageStyle.DECORATED);
-            cropStage.setTitle("Crop Image");
+            CropViewController cropViewController = loader.getController();
+            cropViewController.setImageList(getSelectedFiles());
 
-            Scene scene = new Scene(root);
-            cropStage.setScene(scene);
-            cropStage.showAndWait();
+            Stage stage = new Stage();
+            stage.setTitle("Crop Pane");
+            stage.setScene(new Scene(root));
+            stage.setOnHidden(e -> cropBTN.setDisable(false));
+            cropViewController.setCurrentStage(stage);
+            stage.show();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @FXML
-    private void handleDetectEdge() throws Exception {
-        if (isAnyCheckboxSelected()) {
-            openNewWindow("/se233/projectadpro/views/detectEdge-view.fxml", "Detect Edge");
-        } else {
-            showError("Please select a file");
+    private void handleDetectEdge() {
+        if (!isAnyCheckboxSelected()) { showError("Please select a file"); return; }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/se233/projectadpro/detectEdge-view.fxml"));
+            Parent root = loader.load();
+            Stage stage = new Stage();
+            stage.setTitle("Detect Edge");
+            stage.setScene(new Scene(root));
+            stage.setResizable(false);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -162,27 +186,21 @@ public class MainController {
         alert.showAndWait();
     }
 
-    private void openNewWindow(String fxmlFile, String title) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
-        Parent root = loader.load();
-        Stage stage = new Stage();
-        stage.setTitle(title);
-        stage.setScene(new Scene(root));
-        stage.setResizable(false);
-        stage.show();
-    }
-
     private void openFile(File file) {
         try {
-            String fileName = file.getName().toLowerCase();
-            if (fileName.endsWith(".jpg") || fileName.endsWith(".png")) {
-                openNewWindow("/se233/projectadpro/views/image-view.fxml", "Image Viewer");
-            } else if (fileName.endsWith(".pdf")) {
-                openNewWindow("/se233/projectadpro/views/pdf-view.fxml", "PDF Viewer");
-            }
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/se233/projectadpro/image-view.fxml"));
+            Parent root = loader.load();
+
+            ImageViewController imageViewController = loader.getController();
+            imageViewController.setImageView(new Image(file.toURI().toString()));
+
+            Stage stage = new Stage();
+            stage.setTitle("Image View");
+            stage.setScene(new Scene(root));
+            stage.setResizable(false);
+            stage.show();
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Failed to open the file.");
         }
     }
 }
