@@ -1,13 +1,16 @@
 package se233.projectadpro.model;
 
 import javafx.concurrent.Task;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
 import net.coobird.thumbnailator.Thumbnails;
 
-public class ImageCropTask extends Task<File> {
+public class ImageCropTask extends Task<Void> {
     private File originalImage;
     private int x, y;
     private int width, height;
@@ -25,9 +28,9 @@ public class ImageCropTask extends Task<File> {
     }
 
     @Override
-    protected File call() {
+    public Void call() {
         saveCroppedImage(outputDir);
-        return null; // You may want to return something relevant
+        return null;
     }
 
     private void saveCroppedImage(File outputDir) {
