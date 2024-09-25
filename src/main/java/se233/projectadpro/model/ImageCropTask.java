@@ -1,8 +1,6 @@
 package se233.projectadpro.model;
 
-import javafx.application.Platform;
 import javafx.concurrent.Task;
-import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
@@ -15,6 +13,7 @@ public class ImageCropTask extends Task<File> {
     private int width, height;
     private Stage stage;
     private File outputImage;
+    private File outputDir;
 
     public ImageCropTask(File originalImage, int x, int y, int width, int height, Stage stage) {
         this.originalImage = originalImage;
@@ -27,14 +26,7 @@ public class ImageCropTask extends Task<File> {
 
     @Override
     protected File call() {
-        // Show the DirectoryChooser on the JavaFX Application Thread
-        Platform.runLater(() -> {
-            DirectoryChooser directoryChooser = new DirectoryChooser();
-            directoryChooser.setTitle("Select Output Directory");
-            File outputDir = directoryChooser.showDialog(stage);
-            saveCroppedImage(outputDir);
-        });
-
+        saveCroppedImage(outputDir);
         return null; // You may want to return something relevant
     }
 
@@ -49,9 +41,18 @@ public class ImageCropTask extends Task<File> {
                     .sourceRegion(x, y, width, height) // Crop region (x, y, width, height)
                     .scale(1)
                     .toFile(outputImage);
+
             System.out.println("Image cropped and saved to: " + outputImage.getAbsolutePath());
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getOriginalFileName() {
+        return originalImage.getName();
+    }
+
+    public void setOutputDir(File outputDir) {
+        this.outputDir = outputDir;
     }
 }

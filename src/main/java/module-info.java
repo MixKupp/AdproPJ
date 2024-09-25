@@ -2,6 +2,7 @@ module se233.projectadpro {
     requires javafx.controls;
     requires javafx.fxml;
     requires net.coobird.thumbnailator;
+    requires java.desktop;
 
     opens se233.projectadpro to javafx.fxml;
     exports se233.projectadpro;
