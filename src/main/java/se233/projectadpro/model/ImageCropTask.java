@@ -1,20 +1,22 @@
 package se233.projectadpro.model;
 
-import javafx.application.Platform;
 import javafx.concurrent.Task;
-import javafx.stage.DirectoryChooser;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
 import net.coobird.thumbnailator.Thumbnails;
 
-public class ImageCropTask extends Task<File> {
+public class ImageCropTask extends Task<Void> {
     private File originalImage;
     private int x, y;
     private int width, height;
     private Stage stage;
     private File outputImage;
+    private File outputDir;
 
     public ImageCropTask(File originalImage, int x, int y, int width, int height, Stage stage) {
         this.originalImage = originalImage;
@@ -26,16 +28,9 @@ public class ImageCropTask extends Task<File> {
     }
 
     @Override
-    protected File call() {
-        // Show the DirectoryChooser on the JavaFX Application Thread
-        Platform.runLater(() -> {
-            DirectoryChooser directoryChooser = new DirectoryChooser();
-            directoryChooser.setTitle("Select Output Directory");
-            File outputDir = directoryChooser.showDialog(stage);
-            saveCroppedImage(outputDir);
-        });
-
-        return null; // You may want to return something relevant
+    public Void call() {
+        saveCroppedImage(outputDir);
+        return null;
     }
 
     private void saveCroppedImage(File outputDir) {
@@ -49,9 +44,18 @@ public class ImageCropTask extends Task<File> {
                     .sourceRegion(x, y, width, height) // Crop region (x, y, width, height)
                     .scale(1)
                     .toFile(outputImage);
+
             System.out.println("Image cropped and saved to: " + outputImage.getAbsolutePath());
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getOriginalFileName() {
+        return originalImage.getName();
+    }
+
+    public void setOutputDir(File outputDir) {
+        this.outputDir = outputDir;
     }
 }

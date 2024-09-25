@@ -148,13 +148,13 @@ public class MainController {
             Parent root = loader.load();
 
             CropViewController cropViewController = loader.getController();
-            cropViewController.setImageList(getSelectedFiles());
 
             Stage stage = new Stage();
             stage.setTitle("Crop Pane");
             stage.setScene(new Scene(root));
             stage.setOnHidden(e -> cropBTN.setDisable(false));
             cropViewController.setCurrentStage(stage);
+            cropViewController.setImageList(getSelectedFiles());
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();

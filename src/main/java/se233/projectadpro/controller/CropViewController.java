@@ -1,17 +1,25 @@
 package se233.projectadpro.controller;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import se233.projectadpro.Launcher;
+import se233.projectadpro.model.CropCompleteHandler;
 import se233.projectadpro.model.ImageCropTask;
 import se233.projectadpro.model.ResizableRectangle;
+import se233.projectadpro.model.ZipFileManager;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,80 +35,170 @@ public class CropViewController {
     private AnchorPane anchorPane;
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(2);
+    private ArrayList<ImageCropTask> cropTasks = new ArrayList<>();
 
-    private ArrayList<File> selectedFilesList = new ArrayList<>();
+    private ArrayList<File> imageFilesList = new ArrayList<>();
     private int currentImgIndex = 0;
-    private double maxWidth = 600;
-    private double maxHeight = 500;
+    private double maxWidth = 700;
+    private double maxHeight = 700;
     private double minWidth = 400;
     private double minHeight = 400;
+    private ResizableRectangle resizableRectangle;
+    private File outputDir;
 
     private Stage currentStage;
 
     @FXML
     public void initialize() {
-        ResizableRectangle resizableRectangle = new ResizableRectangle(0, 0, 200, 200, canvas);
+        resizableRectangle = new ResizableRectangle(0, 0, 200, 200, canvas);
         resizableRectangle.drawRectangle();
 
         confirmButton.setOnAction(event -> {
-            if (currentImgIndex == selectedFilesList.size() - 1) {
-                System.out.println("Final Image Reach");
-                ImageCropTask imageCropTask = new ImageCropTask(selectedFilesList.get(currentImgIndex), (int) resizableRectangle.getX(), (int) resizableRectangle.getY(), (int) resizableRectangle.getWidth(), (int) resizableRectangle.getHeight(), currentStage);
-                executorService.submit(imageCropTask);
+            int x = (int) Math.ceil(resizableRectangle.getX());
+            int y = (int) Math.ceil(resizableRectangle.getY());
+            int width = (int) Math.ceil(resizableRectangle.getWidth());
+            int height = (int) Math.ceil(resizableRectangle.getHeight());
+            int imageViewWidth = (int) Math.ceil(imageView.getFitWidth());
+            int imageViewHeight = (int) Math.ceil(imageView.getFitHeight());
+            double scaleX = imageView.getImage().getWidth() / imageViewWidth;
+            double scaleY = imageView.getImage().getHeight() / imageViewHeight;
+            int cropX = (int) Math.ceil(x * scaleX);
+            int cropY = (int) Math.ceil(y * scaleY);
+            int cropWidth = (int) Math.ceil(width * scaleX);
+            int cropHeight = (int) Math.ceil(height * scaleY);
+
+            ImageCropTask imageCropTask = new ImageCropTask(imageFilesList.get(currentImgIndex), cropX, cropY, cropWidth, cropHeight, currentStage);
+            cropTasks.add(imageCropTask);
+
+            if (currentImgIndex == imageFilesList.size() - 1) {
+                startAllTasks();
+//                openProgressView();
                 currentStage.close();
             }
-            if (currentImgIndex != selectedFilesList.size() - 1) {
+            if (currentImgIndex != imageFilesList.size() - 1) {
                 currentImgIndex++;
-                setImageView(new Image(selectedFilesList.get(currentImgIndex).toURI().toString()));
+                setImageView(new Image(imageFilesList.get(currentImgIndex).toURI().toString()));
             }
         });
     }
 
-    public void setImageList(ArrayList<File> selectedFilesList) {
-        this.selectedFilesList = selectedFilesList;
-        currentImgIndex = 0;
-        setImageView(new Image(selectedFilesList.get(currentImgIndex).toURI().toString()));
+    public ArrayList<File> processFilesList(ArrayList<File> inputFilesList) throws IOException {
+        ZipFileManager zipFileManager = new ZipFileManager();
+        ArrayList<File> imageFilesList = zipFileManager.replaceZipWithImages(inputFilesList);
+
+        return imageFilesList;
     }
 
-    public void setImageView(Image image) {
+    public void setImageList(ArrayList<File> selectedFilesList) throws IOException {
+        this.imageFilesList = processFilesList(selectedFilesList);
+        currentImgIndex = 0;
+        setImageView(new Image(imageFilesList.get(currentImgIndex).toURI().toString()));
+    }
+
+    public void resizeScene(Image image) {
         double width = image.getWidth();
         double height = image.getHeight();
 
-        // Check if the image is smaller than the minimum size
-        if (width < minWidth || height < minHeight) {
-            double aspectRatio = width / height;
-            if (aspectRatio > 1) { // Wider than tall
-                width = minWidth;
-                height = minWidth / aspectRatio;
-            } else { // Taller than wide
-                height = minHeight;
-                width = minHeight * aspectRatio;
-            }
+        if (width <= minWidth || height <= minHeight) {
+            width = minWidth;
+            height = minHeight;
         } else {
-            // Scale down if necessary
             if (width > maxWidth || height > maxHeight) {
                 double aspectRatio = width / height;
-                if (aspectRatio > 1) { // Wider than tall
+                if (aspectRatio > 1) {
                     width = maxWidth;
                     height = maxWidth / aspectRatio;
-                } else { // Taller than wide
+                } else {
                     height = maxHeight;
                     width = maxHeight * aspectRatio;
                 }
             }
         }
 
-        imageView.setFitWidth(width);
-        imageView.setFitHeight(height);
+        if ((resizableRectangle.getX() + resizableRectangle.getWidth()) >= width || (resizableRectangle.getY() + resizableRectangle.getHeight()) >= height) {
+            Platform.runLater(() -> {
+                resizableRectangle.setX(0);
+                resizableRectangle.setY(0);
+            });
+        }
+
+        currentStage.setHeight(height + 140);
+        currentStage.setWidth(width + 140);
+        anchorPane.setPrefHeight(height + 120);
+        anchorPane.setPrefWidth(width + 120);
+        canvas.setWidth(width + 20);
+        canvas.setHeight(height + 20);
+        imageView.setFitWidth(width + 20);
+        imageView.setFitHeight(height + 20);
         imageView.setPreserveRatio(true);
-        anchorPane.setPrefHeight(height+100);
-        anchorPane.setPrefWidth(width+100);
-        canvas.setWidth(width);
-        canvas.setHeight(height);
 
-        confirmButton.setLayoutX((width - confirmButton.getWidth()) / 1.75);
-        confirmButton.setLayoutY(height + 50);
+        Platform.runLater(() -> {
+            confirmButton.setLayoutX((currentStage.getWidth() - confirmButton.getWidth()) / 2);
+            confirmButton.setLayoutY(currentStage.getHeight() - 70);
+        });
+    }
 
+    public void startAllTasks() {
+        int progressBar1MaxValue = (cropTasks.size() + 1) / 2;
+        int progressBar2MaxValue = cropTasks.size() / 2;
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Select Output Directory");
+        outputDir = directoryChooser.showDialog(currentStage);
+
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/se233/projectadpro/progress-view.fxml"));
+            Parent root = fxmlLoader.load();
+
+            ProgressViewController progressViewController = fxmlLoader.getController();
+            progressViewController.setMaxProgressValue1(progressBar1MaxValue);
+            progressViewController.setMaxProgressValue2(progressBar2MaxValue);
+
+            Stage stage = new Stage();
+            stage.setTitle("Progress");
+            stage.setScene(new Scene(root));
+            stage.show();
+
+            for (int i = 0; i < cropTasks.size(); i++) {
+                final int index = i;
+                ImageCropTask task = cropTasks.get(i);
+                task.setOutputDir(outputDir);
+                Platform.runLater(() -> {
+                    if (index % 2 == 0)  {
+                        progressViewController.setLabel1(task.getOriginalFileName());
+                    } else {
+                        progressViewController.setLabel2(task.getOriginalFileName());
+                    }
+                });
+                task.setOnSucceeded(e -> {
+                    new CropCompleteHandler(index, progressViewController, task).run();
+                });
+                task.setOnFailed(e -> {
+                    System.err.println(task.getException());
+                });
+                executorService.submit(task);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            executorService.shutdown();
+        }
+    }
+
+    public void openProgressView() {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/se233/projectadpro/progress-view.fxml"));
+            Parent root = fxmlLoader.load();
+            Stage stage = new Stage();
+            stage.setTitle("Progress");
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setImageView(Image image) {
+        resizeScene(image);
         imageView.setImage(image);
     }
 
