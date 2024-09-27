@@ -19,8 +19,8 @@ public class ProgressViewController {
 
     @FXML
     private void initialize() {
-        label1.setText("HELLO");
-        label2.setText("WORLD");
+        label1.setText("Thread 1");
+        label2.setText("Thread 2");
         progressBar1.setProgress(0);
         progressBar2.setProgress(0);
     }

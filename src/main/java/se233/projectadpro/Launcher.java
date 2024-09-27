@@ -8,7 +8,6 @@ import javafx.stage.Stage;
 
 
 public class Launcher extends Application {
-
     public static Stage primaryStage;
 
     @Override
