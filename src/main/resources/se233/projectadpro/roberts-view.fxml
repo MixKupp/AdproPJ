@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.text.Font?>
+<AnchorPane prefHeight="175.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="se233.projectadpro.controller.RobertsViewController">
+    <children>
+        <Label layoutX="133.0" layoutY="21.0" text="Roberts">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </Label>
+        <CheckBox fx:id="l1normBox" layoutX="118.0" layoutY="71.0" mnemonicParsing="false" text="L1 norm" />
+        <Button fx:id="startBtn" layoutX="130.0" layoutY="118.0" mnemonicParsing="false" text="Start" />
+    </children>
+</AnchorPane>

@@ -8,12 +8,9 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
 import java.io.File;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -166,12 +163,19 @@ public class MainController {
         if (!isAnyCheckboxSelected()) { showError("Please select a file"); return; }
 
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/se233/projectadpro/detectEdge-view.fxml"));
+            detectEdgeBTN.setDisable(true);
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/se233/projectadpro/edge-view.fxml"));
             Parent root = loader.load();
+
+            EdgeViewController edgeViewController = loader.getController();
+
             Stage stage = new Stage();
             stage.setTitle("Detect Edge");
             stage.setScene(new Scene(root));
+            stage.setOnHidden(e -> detectEdgeBTN.setDisable(false));
             stage.setResizable(false);
+            edgeViewController.setImageList(getSelectedFiles());
+            edgeViewController.setCurrentStage(stage);
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
@@ -192,12 +196,13 @@ public class MainController {
             Parent root = loader.load();
 
             ImageViewController imageViewController = loader.getController();
-            imageViewController.setImageView(new Image(file.toURI().toString()));
 
             Stage stage = new Stage();
             stage.setTitle("Image View");
             stage.setScene(new Scene(root));
             stage.setResizable(false);
+            imageViewController.setCurrentStage(stage);
+            imageViewController.setImageView(new Image(file.toURI().toString()));
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();

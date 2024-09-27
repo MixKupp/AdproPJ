@@ -12,8 +12,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-import se233.projectadpro.Launcher;
-import se233.projectadpro.model.CropCompleteHandler;
+import se233.projectadpro.model.TaskCompleteHandler;
 import se233.projectadpro.model.ImageCropTask;
 import se233.projectadpro.model.ResizableRectangle;
 import se233.projectadpro.model.ZipFileManager;
@@ -72,7 +71,6 @@ public class CropViewController {
 
             if (currentImgIndex == imageFilesList.size() - 1) {
                 startAllTasks();
-//                openProgressView();
                 currentStage.close();
             }
             if (currentImgIndex != imageFilesList.size() - 1) {
@@ -84,9 +82,8 @@ public class CropViewController {
 
     public ArrayList<File> processFilesList(ArrayList<File> inputFilesList) throws IOException {
         ZipFileManager zipFileManager = new ZipFileManager();
-        ArrayList<File> imageFilesList = zipFileManager.replaceZipWithImages(inputFilesList);
 
-        return imageFilesList;
+        return zipFileManager.replaceZipWithImages(inputFilesList);
     }
 
     public void setImageList(ArrayList<File> selectedFilesList) throws IOException {
@@ -134,7 +131,7 @@ public class CropViewController {
 
         Platform.runLater(() -> {
             confirmButton.setLayoutX((currentStage.getWidth() - confirmButton.getWidth()) / 2);
-            confirmButton.setLayoutY(currentStage.getHeight() - 70);
+            confirmButton.setLayoutY(currentStage.getHeight() - (70 + (confirmButton.getHeight() / 2)));
         });
     }
 
@@ -170,7 +167,7 @@ public class CropViewController {
                     }
                 });
                 task.setOnSucceeded(e -> {
-                    new CropCompleteHandler(index, progressViewController, task).run();
+                    new TaskCompleteHandler(index, progressViewController).run();
                 });
                 task.setOnFailed(e -> {
                     System.err.println(task.getException());
@@ -181,19 +178,6 @@ public class CropViewController {
             e.printStackTrace();
         } finally {
             executorService.shutdown();
-        }
-    }
-
-    public void openProgressView() {
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/se233/projectadpro/progress-view.fxml"));
-            Parent root = fxmlLoader.load();
-            Stage stage = new Stage();
-            stage.setTitle("Progress");
-            stage.setScene(new Scene(root));
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
