@@ -59,6 +59,11 @@ public class MainController {
                     contextMenu.getItems().clear();
                     contextMenu.getItems().add(openItem);
                     setContextMenu(contextMenu);
+
+                    MenuItem deleteItem = new MenuItem("Delete");
+                    deleteItem.setOnAction(event -> {listViews.getItems().remove(file);});
+                    contextMenu.getItems().add(deleteItem);
+                    setContextMenu(contextMenu);
                 }
             }
         });
