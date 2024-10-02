@@ -9,6 +9,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.stage.Stage;
+import se233.projectadpro.model.util.FileNotSelectException;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -54,6 +55,8 @@ public class MainController {
                         }
                     });
 
+                    contextMenu.getItems().clear();
+
                     MenuItem openItem = new MenuItem("Open");
                     openItem.setOnAction(event -> openFile(file));
                     contextMenu.getItems().clear();
@@ -61,7 +64,11 @@ public class MainController {
                     setContextMenu(contextMenu);
 
                     MenuItem deleteItem = new MenuItem("Delete");
-                    deleteItem.setOnAction(event -> {listViews.getItems().remove(file);});
+                    deleteItem.setOnAction(event -> {
+                        checkBox.setSelected(false);
+                        listViews.getItems().remove(file);
+                        checkBoxMap.remove(file);
+                    });
                     contextMenu.getItems().add(deleteItem);
                     setContextMenu(contextMenu);
                 }
@@ -141,8 +148,8 @@ public class MainController {
     }
 
     @FXML
-    private void handleCrop() {
-        if (!isAnyCheckboxSelected()) { showError("Please select a file"); return; }
+    private void handleCrop() throws FileNotSelectException{
+            if (!isAnyCheckboxSelected()) { throw new FileNotSelectException("File not selected. Please select a file."); }
 
         try {
             cropBTN.setDisable(true);
@@ -158,14 +165,14 @@ public class MainController {
             cropViewController.setCurrentStage(stage);
             cropViewController.setImageList(getSelectedFiles());
             stage.show();
-        } catch (Exception e) {
+        }catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @FXML
-    private void handleDetectEdge() {
-        if (!isAnyCheckboxSelected()) { showError("Please select a file"); return; }
+    private void handleDetectEdge() throws FileNotSelectException{
+        if (!isAnyCheckboxSelected()) { throw new FileNotSelectException("File not selected. Please select a file."); }
 
         try {
             detectEdgeBTN.setDisable(true);
@@ -182,17 +189,10 @@ public class MainController {
             edgeViewController.setImageList(getSelectedFiles());
             edgeViewController.setCurrentStage(stage);
             stage.show();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
     }
 
     private void openFile(File file) {
