@@ -12,10 +12,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-import se233.projectadpro.model.TaskCompleteHandler;
-import se233.projectadpro.model.ImageCropTask;
-import se233.projectadpro.model.ResizableRectangle;
-import se233.projectadpro.model.ZipFileManager;
+import se233.projectadpro.model.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -159,15 +156,17 @@ public class CropViewController {
                 final int index = i;
                 ImageCropTask task = cropTasks.get(i);
                 task.setOutputDir(outputDir);
-                Platform.runLater(() -> {
-                    if (index % 2 == 0)  {
-                        progressViewController.setLabel1(task.getOriginalFileName());
-                    } else {
-                        progressViewController.setLabel2(task.getOriginalFileName());
-                    }
-                });
                 task.setOnSucceeded(e -> {
                     new TaskCompleteHandler(index, progressViewController).run();
+                    if (index == (cropTasks.size() - 1)) {
+                        return;
+                    }
+                    ImageCropTask nextTask = cropTasks.get(index + 1);
+                    if (index % 2 == 0)  {
+                        progressViewController.setLabel1(nextTask.getOriginalFileName());
+                    } else {
+                        progressViewController.setLabel2(nextTask.getOriginalFileName());
+                    }
                 });
                 task.setOnFailed(e -> {
                     System.err.println(task.getException());

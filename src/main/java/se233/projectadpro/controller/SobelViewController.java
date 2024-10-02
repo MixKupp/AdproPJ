@@ -67,15 +67,17 @@ public class SobelViewController {
                 final int index = i;
                 SobelTask task = sobelTasks.get(i);
                 task.setOutputDir(outputDir);
-                Platform.runLater(() -> {
-                    if (index % 2 == 0)  {
-                        progressViewController.setLabel1(task.getOriginalFileName());
-                    } else {
-                        progressViewController.setLabel2(task.getOriginalFileName());
-                    }
-                });
                 task.setOnSucceeded(e -> {
                     new TaskCompleteHandler(index, progressViewController).run();
+                    if (index == (sobelTasks.size() - 1)) {
+                        return;
+                    }
+                    SobelTask nextTask = sobelTasks.get(index + 1);
+                    if (index % 2 == 0)  {
+                        progressViewController.setLabel1(nextTask.getOriginalFileName());
+                    } else {
+                        progressViewController.setLabel2(nextTask.getOriginalFileName());
+                    }
                 });
                 task.setOnFailed(e -> {
                     System.err.println(task.getException());

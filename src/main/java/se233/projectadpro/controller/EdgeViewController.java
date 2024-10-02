@@ -6,6 +6,7 @@ import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.Parent;
 import javafx.fxml.FXMLLoader;
+import se233.projectadpro.model.ZipFileManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,8 +23,14 @@ public class EdgeViewController {
     private ArrayList<File> imageList = new ArrayList<>();
     private Stage currentStage;
 
-    public void setImageList(ArrayList<File> imageList) {
-        this.imageList = imageList;
+    public ArrayList<File> processFilesList(ArrayList<File> inputFilesList) throws IOException {
+        ZipFileManager zipFileManager = new ZipFileManager();
+
+        return zipFileManager.replaceZipWithImages(inputFilesList);
+    }
+
+    public void setImageList(ArrayList<File> imageList) throws IOException {
+        this.imageList = processFilesList(imageList);
     }
 
     public void setCurrentStage(Stage currentStage) {
