@@ -66,13 +66,20 @@ public class RobertsViewController {
                 final int index = i;
                 RobertsTask task = robertsTasks.get(i);
                 task.setOutputDir(outputDir);
+                Platform.runLater(() -> {
+                    if (index % 2 == 0)  {
+                        progressViewController.setLabel1(task.getOriginalFileName());
+                    } else {
+                        progressViewController.setLabel2(task.getOriginalFileName());
+                    }
+                });
                 task.setOnSucceeded(e -> {
                     new TaskCompleteHandler(index, progressViewController).run();
                     if (index == (robertsTasks.size() - 1)) {
                         return;
                     }
                     RobertsTask nextTask = robertsTasks.get(index + 1);
-                    if (index % 2 == 0)  {
+                    if ((index+1) % 2 == 0)  {
                         progressViewController.setLabel1(nextTask.getOriginalFileName());
                     } else {
                         progressViewController.setLabel2(nextTask.getOriginalFileName());
