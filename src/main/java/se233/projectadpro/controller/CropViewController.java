@@ -152,17 +152,19 @@ public class CropViewController {
             stage.setScene(new Scene(root));
             stage.show();
 
+            Platform.runLater(() -> {
+                if (cropTasks.size() == 2)  {
+                    progressViewController.setLabel1(cropTasks.get(0).getOriginalFileName());
+                    progressViewController.setLabel2(cropTasks.get(1).getOriginalFileName());
+                } else {
+                    progressViewController.setLabel1(cropTasks.get(0).getOriginalFileName());
+                }
+            });
+
             for (int i = 0; i < cropTasks.size(); i++) {
                 final int index = i;
                 ImageCropTask task = cropTasks.get(i);
                 task.setOutputDir(outputDir);
-                Platform.runLater(() -> {
-                    if (index % 2 == 0)  {
-                        progressViewController.setLabel1(task.getOriginalFileName());
-                    } else {
-                        progressViewController.setLabel2(task.getOriginalFileName());
-                    }
-                });
                 task.setOnSucceeded(e -> {
                     new TaskCompleteHandler(index, progressViewController).run();
                     if (index == (cropTasks.size() - 1)) {

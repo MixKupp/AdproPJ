@@ -62,17 +62,19 @@ public class RobertsViewController {
             stage.setScene(new Scene(root));
             stage.show();
 
+            Platform.runLater(() -> {
+                if (robertsTasks.size() == 2)  {
+                    progressViewController.setLabel1(robertsTasks.get(0).getOriginalFileName());
+                    progressViewController.setLabel2(robertsTasks.get(1).getOriginalFileName());
+                } else {
+                    progressViewController.setLabel1(robertsTasks.get(0).getOriginalFileName());
+                }
+            });
+
             for (int i = 0; i < robertsTasks.size(); i++) {
                 final int index = i;
                 RobertsTask task = robertsTasks.get(i);
                 task.setOutputDir(outputDir);
-                Platform.runLater(() -> {
-                    if (index % 2 == 0)  {
-                        progressViewController.setLabel1(task.getOriginalFileName());
-                    } else {
-                        progressViewController.setLabel2(task.getOriginalFileName());
-                    }
-                });
                 task.setOnSucceeded(e -> {
                     new TaskCompleteHandler(index, progressViewController).run();
                     if (index == (robertsTasks.size() - 1)) {

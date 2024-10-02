@@ -63,17 +63,19 @@ public class SobelViewController {
             stage.setScene(new Scene(root));
             stage.show();
 
+            Platform.runLater(() -> {
+                if (sobelTasks.size() == 2)  {
+                    progressViewController.setLabel1(sobelTasks.get(0).getOriginalFileName());
+                    progressViewController.setLabel2(sobelTasks.get(1).getOriginalFileName());
+                } else {
+                    progressViewController.setLabel1(sobelTasks.get(0).getOriginalFileName());
+                }
+            });
+
             for (int i = 0; i < sobelTasks.size(); i++) {
                 final int index = i;
                 SobelTask task = sobelTasks.get(i);
                 task.setOutputDir(outputDir);
-                Platform.runLater(() -> {
-                    if (index % 2 == 0)  {
-                        progressViewController.setLabel1(task.getOriginalFileName());
-                    } else {
-                        progressViewController.setLabel2(task.getOriginalFileName());
-                    }
-                });
                 task.setOnSucceeded(e -> {
                     new TaskCompleteHandler(index, progressViewController).run();
                     if (index == (sobelTasks.size() - 1)) {

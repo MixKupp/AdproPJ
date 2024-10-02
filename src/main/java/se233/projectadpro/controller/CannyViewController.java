@@ -95,17 +95,19 @@ public class CannyViewController {
             stage.setScene(new Scene(root));
             stage.show();
 
+            Platform.runLater(() -> {
+                if (cannyTasks.size() == 2)  {
+                    progressViewController.setLabel1(cannyTasks.get(0).getOriginalFileName());
+                    progressViewController.setLabel2(cannyTasks.get(1).getOriginalFileName());
+                } else {
+                    progressViewController.setLabel1(cannyTasks.get(0).getOriginalFileName());
+                }
+            });
+
             for (int i = 0; i < cannyTasks.size(); i++) {
                 final int index = i;
                 CannyTask task = cannyTasks.get(i);
                 task.setOutputDir(outputDir);
-                Platform.runLater(() -> {
-                    if (index % 2 == 0)  {
-                        progressViewController.setLabel1(task.getOriginalFileName());
-                    } else {
-                        progressViewController.setLabel2(task.getOriginalFileName());
-                    }
-                });
                 task.setOnSucceeded(e -> {
                     new TaskCompleteHandler(index, progressViewController).run();
                     if (index == (cannyTasks.size() - 1)) {
