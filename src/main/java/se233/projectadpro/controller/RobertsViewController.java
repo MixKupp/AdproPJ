@@ -9,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import se233.projectadpro.model.CannyTask;
 import se233.projectadpro.model.RobertsTask;
 import se233.projectadpro.model.TaskCompleteHandler;
 
@@ -65,15 +66,17 @@ public class RobertsViewController {
                 final int index = i;
                 RobertsTask task = robertsTasks.get(i);
                 task.setOutputDir(outputDir);
-                Platform.runLater(() -> {
-                    if (index % 2 == 0)  {
-                        progressViewController.setLabel1(task.getOriginalFileName());
-                    } else {
-                        progressViewController.setLabel2(task.getOriginalFileName());
-                    }
-                });
                 task.setOnSucceeded(e -> {
                     new TaskCompleteHandler(index, progressViewController).run();
+                    if (index == (robertsTasks.size() - 1)) {
+                        return;
+                    }
+                    RobertsTask nextTask = robertsTasks.get(index + 1);
+                    if (index % 2 == 0)  {
+                        progressViewController.setLabel1(nextTask.getOriginalFileName());
+                    } else {
+                        progressViewController.setLabel2(nextTask.getOriginalFileName());
+                    }
                 });
                 task.setOnFailed(e -> {
                     System.err.println(task.getException());

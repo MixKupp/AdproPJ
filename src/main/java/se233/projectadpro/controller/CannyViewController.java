@@ -99,15 +99,17 @@ public class CannyViewController {
                 final int index = i;
                 CannyTask task = cannyTasks.get(i);
                 task.setOutputDir(outputDir);
-                Platform.runLater(() -> {
-                    if (index % 2 == 0)  {
-                        progressViewController.setLabel1(task.getOriginalFileName());
-                    } else {
-                        progressViewController.setLabel2(task.getOriginalFileName());
-                    }
-                });
                 task.setOnSucceeded(e -> {
                     new TaskCompleteHandler(index, progressViewController).run();
+                    if (index == (cannyTasks.size() - 1)) {
+                        return;
+                    }
+                    CannyTask nextTask = cannyTasks.get(index + 1);
+                    if (index % 2 == 0)  {
+                        progressViewController.setLabel1(nextTask.getOriginalFileName());
+                    } else {
+                        progressViewController.setLabel2(nextTask.getOriginalFileName());
+                    }
                 });
                 task.setOnFailed(e -> {
                     System.err.println(task.getException());
